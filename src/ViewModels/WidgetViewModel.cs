@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Linq;
 using System.Windows.Threading;
 using OpenCodeCostMeter.Models;
 using OpenCodeCostMeter.Services;
@@ -31,6 +32,7 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
     {
         _highlightTimer.Stop();
         IsTodayCostHighlighted = false;
+        _highlightedModelKeys.Clear();
         foreach (var row in ModelRows)
         {
             row.IsCostHighlighted = false;
@@ -54,6 +56,7 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
     private string _lastCostText = "$0.00";
     private bool _isFirstUpdate = true;
     private readonly Dictionary<string, string> _lastModelCostTexts = new();
+    private readonly HashSet<string> _highlightedModelKeys = new();
 
     public ObservableCollection<ModelRowViewModel> ModelRows { get; } = new();
 
@@ -74,7 +77,7 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
         _lastCostText = costText;
         TodayCostText = costText;
 
-        var highlightedModels = new HashSet<string>();
+        var newlyHighlighted = new HashSet<string>();
         var canHighlightModels = _lastModelCostTexts.Count > 0;
         foreach (var b in snap.Models)
         {
@@ -82,17 +85,21 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
             var modelCostText = b.Cost.ToString("C2", CultureInfo.GetCultureInfo("en-US"));
             if (canHighlightModels && _lastModelCostTexts.TryGetValue(key, out var prevCostText) && prevCostText != modelCostText)
             {
-                highlightedModels.Add(key);
+                newlyHighlighted.Add(key);
             }
         }
+
+        _highlightedModelKeys.IntersectWith(snap.Models.Select(ModelKey));
+        _highlightedModelKeys.UnionWith(newlyHighlighted);
 
         ModelRows.Clear();
         foreach (var b in snap.Models)
         {
             if (b.Cost < 0.005) continue;
+            var key = ModelKey(b);
             var row = new ModelRowViewModel(b)
             {
-                IsCostHighlighted = highlightedModels.Contains(ModelKey(b))
+                IsCostHighlighted = _highlightedModelKeys.Contains(key)
             };
             if (row.IsCostHighlighted) anyHighlight = true;
             ModelRows.Add(row);
