@@ -19,23 +19,22 @@
         <SolidColorBrush x:Key="MicaBg" Color="#20201F"/>
         <SolidColorBrush x:Key="MicaStroke" Color="#4A4A4A"/>
         <SolidColorBrush x:Key="OnSurface" Color="#E5E2E1"/>
-        <SolidColorBrush x:Key="OnSurfaceVariant" Color="#C0C7D4"/>
         <SolidColorBrush x:Key="Secondary" Color="#61DBB4"/>
         <SolidColorBrush x:Key="RowHover" Color="#2A2A2A"/>
         <conv:BoolToVisibilityConverter x:Key="BoolToVis"/>
         <conv:BoolToDoubleConverter x:Key="ExpandAngle" TrueValue="180" FalseValue="0"/>
         <conv:BoolToBrushConverter x:Key="AmountHighlightBrush" TrueBrush="{StaticResource Secondary}" FalseBrush="{StaticResource OnSurface}"/>
-        <conv:BoolToBrushConverter x:Key="ModelCostHighlightBrush" TrueBrush="{StaticResource Secondary}" FalseBrush="{StaticResource OnSurfaceVariant}"/>
+        <conv:BoolToBrushConverter x:Key="ModelCostHighlightBrush" TrueBrush="{StaticResource Secondary}" FalseBrush="{StaticResource OnSurface}"/>
         <CubicEase x:Key="EaseOut" EasingMode="EaseOut"/>
-        <FontFamily x:Key="UiFont">Segoe UI Variable, Segoe UI, Inter</FontFamily>
-        <FontFamily x:Key="MonoFont">Cascadia Mono, Cascadia Code, Consolas</FontFamily>
+        <FontFamily x:Key="UiFont">Segoe UI Variable, Segoe UI</FontFamily>
+        <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas</FontFamily>
         <Style TargetType="Border">
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         </Style>
         <Style x:Key="GhostBtn" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Foreground" Value="{StaticResource OnSurfaceVariant}"/>
+            <Setter Property="Foreground" Value="{StaticResource OnSurface}"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Padding" Value="4"/>
             <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
@@ -72,7 +71,7 @@
         <StackPanel Margin="20,12">
 
                 <!-- Primary Spend Card -->
-                <TextBlock Text="{Binding TodayCostText}" FontFamily="{StaticResource UiFont}" FontSize="32" FontWeight="Bold"
+                <TextBlock Text="{Binding TodayCostText}" FontFamily="{StaticResource MonoFont}" FontSize="32" FontWeight="Bold"
                            Foreground="{Binding IsTodayCostHighlighted, Converter={StaticResource AmountHighlightBrush}}"
                            HorizontalAlignment="Center"/>
 
@@ -129,9 +128,9 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="{Binding Header}" FontFamily="{StaticResource UiFont}" FontSize="12" FontWeight="Medium"
-                                                       Foreground="{StaticResource OnSurface}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                                            <TextBlock Grid.Column="1" Text="{Binding CostText}" FontFamily="{StaticResource MonoFont}" FontSize="11" FontWeight="Medium"
+                                            <TextBlock Grid.Column="0" Text="{Binding Header}" FontFamily="{StaticResource MonoFont}" FontSize="14" FontWeight="Medium"
+                                                       Foreground="{StaticResource OnSurface}" VerticalAlignment="Bottom" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding CostText}" FontFamily="{StaticResource MonoFont}" FontSize="14" FontWeight="Medium"
                                                        Foreground="{Binding IsCostHighlighted, Converter={StaticResource ModelCostHighlightBrush}}" VerticalAlignment="Bottom"
                                                        HorizontalAlignment="Right" Margin="10,0,0,0"/>
                                         </Grid>
