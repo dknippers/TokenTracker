@@ -109,9 +109,6 @@ public partial class App : Application
             var start = Services.UsagePoller.StartOfTodayMs();
             var snap = repo.GetToday(start);
             Console.WriteLine($"day        {snap.DayKey}");
-            Console.WriteLine($"active     {snap.ActiveModel ?? "(none)"}");
-            Console.WriteLine($"live       {snap.IsLive}");
-            Console.WriteLine($"calls      {snap.Calls}");
             Console.WriteLine($"input      {snap.Input}");
             Console.WriteLine($"output     {snap.Output}");
             Console.WriteLine($"reasoning  {snap.Reasoning}");
@@ -121,7 +118,7 @@ public partial class App : Application
             Console.WriteLine($"models:");
             foreach (var b in snap.Models)
             {
-                Console.WriteLine($"  {b.Provider}/{b.Model} calls={b.Calls} in={b.Input} out={b.Output} cache_r={b.CacheRead} cost=${b.Cost:F6}");
+                Console.WriteLine($"  {b.Provider}/{b.Model} in={b.Input} out={b.Output} cache_r={b.CacheRead} cost=${b.Cost:F6}");
             }
         }
         catch (Exception ex)

@@ -8,8 +8,6 @@ namespace TokenTrackerWidget.ViewModels;
 public partial class ModelRowViewModel : ObservableObject
 {
     public string Header { get; }
-    public int Calls { get; }
-    public string CallsText { get; }
     public string CostText { get; }
 
     [ObservableProperty] private Brush _accentBrush;
@@ -18,8 +16,6 @@ public partial class ModelRowViewModel : ObservableObject
     public ModelRowViewModel(ModelBreakdown b)
     {
         Header = DisplayHeader(b);
-        Calls = b.Calls;
-        CallsText = $"{b.Calls}×";
         CostText = b.Cost.ToString("C2", CultureInfo.GetCultureInfo("en-US"));
         var color = ModelColorResolver.For(b.Provider, b.Model);
         AccentBrush = new SolidColorBrush(color)

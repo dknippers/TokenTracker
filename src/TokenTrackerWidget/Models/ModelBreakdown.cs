@@ -3,7 +3,6 @@ namespace TokenTrackerWidget.Models;
 public sealed record ModelBreakdown(
     string Provider,
     string Model,
-    int Calls,
     double Cost,
     long Input,
     long Output,
