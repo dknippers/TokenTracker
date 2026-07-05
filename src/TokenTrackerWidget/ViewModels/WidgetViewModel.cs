@@ -19,12 +19,8 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
         _poller.Error += OnError;
     }
 
-    [ObservableProperty] private string _dayKeyText = "";
-    [ObservableProperty] private string _activeModelText = "no active session";
-    [ObservableProperty] private bool _isLive;
     [ObservableProperty] private string _todayCostText = "$0.00";
     [ObservableProperty] private bool _isTodayCostHighlighted;
-    [ObservableProperty] private string _callsText = "0 calls";
     [ObservableProperty] private bool _isRetrying;
     [ObservableProperty] private string _lastErrorText = "";
     [ObservableProperty] private bool _isBreakdownExpanded;
@@ -49,12 +45,6 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
 
     private void OnUpdated(object? sender, DayUsageSnapshot snap)
     {
-        DayKeyText = "Total Spent Today · " + snap.DayKey;
-        ActiveModelText = string.IsNullOrEmpty(snap.ActiveModel)
-            ? "no active session"
-            : snap.ActiveModel;
-        IsLive = snap.IsLive;
-
         var costText = snap.Cost.ToString("C2", CultureInfo.GetCultureInfo("en-US"));
         if (_isFirstUpdate)
         {
@@ -67,8 +57,6 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
         }
         _lastCostText = costText;
         TodayCostText = costText;
-
-        CallsText = $"{snap.Calls} {(snap.Calls == 1 ? "call" : "calls")}";
 
         var highlightedModels = new HashSet<string>();
         var canHighlightModels = _lastModelCostTexts.Count > 0;
