@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using TokenTrackerWidget.Data;
 using TokenTrackerWidget.Models;
@@ -15,13 +16,24 @@ public partial class App : Application
     private WidgetViewModel _vm = null!;
     private MainWindow _window = null!;
 
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool AttachConsole(int dwProcessId);
+
+    [DllImport("kernel32.dll")]
+    private static extern bool AllocConsole();
+
+    [DllImport("kernel32.dll")]
+    private static extern bool FreeConsole();
+
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
-        if (e.Args.Length > 0 && string.Equals(e.Args[0], "--dump", StringComparison.OrdinalIgnoreCase))
+        var options = ParseArgs(e.Args);
+
+        if (options.ShowHelp)
         {
-            DumpTodayToConsole();
+            PrintHelp();
             Shutdown(0);
             return;
         }
@@ -29,16 +41,12 @@ public partial class App : Application
         _store = new SettingsStore(SettingsStore.DefaultPath());
         _settings = _store.Load();
 
-        if (!DbLocator.TryResolveDatabasePath(_settings, out var dbPath, out _))
+        var dbPath = DbLocator.ResolveDatabasePath(options.DbPath);
+        if (dbPath == null)
         {
-            var pick = PromptForDatabase(_settings);
-            if (pick == null)
-            {
-                Shutdown(0);
-                return;
-            }
-            dbPath = pick;
-            _settings.DatabasePathOverride = pick;
+            ShowDatabaseNotFound(options.DbPath);
+            Shutdown(1);
+            return;
         }
 
         var repo = new MessageTableRepository(dbPath);
@@ -95,53 +103,62 @@ public partial class App : Application
         }
     }
 
-    private static void DumpTodayToConsole()
+    private static LaunchOptions ParseArgs(string[] args)
     {
-        try
+        var options = new LaunchOptions();
+        for (var i = 0; i < args.Length; i++)
         {
-            var dbPath = DbLocator.DefaultPath();
-            if (!File.Exists(dbPath))
+            var arg = args[i];
+            if (string.Equals(arg, "--help", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(arg, "-?", StringComparison.Ordinal) ||
+                string.Equals(arg, "/?", StringComparison.Ordinal))
             {
-                Console.Error.WriteLine($"db not found: {dbPath}");
-                return;
+                options.ShowHelp = true;
             }
-            var repo = new MessageTableRepository(dbPath);
-            var start = Services.UsagePoller.StartOfTodayMs();
-            var snap = repo.GetToday(start);
-            Console.WriteLine($"day        {snap.DayKey}");
-            Console.WriteLine($"input      {snap.Input}");
-            Console.WriteLine($"output     {snap.Output}");
-            Console.WriteLine($"reasoning  {snap.Reasoning}");
-            Console.WriteLine($"cache_r    {snap.CacheRead}");
-            Console.WriteLine($"cache_w    {snap.CacheWrite}");
-            Console.WriteLine($"cost_usd   {snap.Cost:F6}");
-            Console.WriteLine($"models:");
-            foreach (var b in snap.Models)
+            else if (string.Equals(arg, "--db-path", StringComparison.OrdinalIgnoreCase))
             {
-                Console.WriteLine($"  {b.Provider}/{b.Model} in={b.Input} out={b.Output} cache_r={b.CacheRead} cost=${b.Cost:F6}");
+                if (i + 1 < args.Length)
+                {
+                    options.DbPath = args[++i];
+                }
             }
         }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine(ex);
-        }
+        return options;
     }
 
-    private string? PromptForDatabase(WidgetSettings settings)
+    private static void PrintHelp()
     {
-        var msg = "Could not find the opencode database at the default location\n" +
-                  $"{DbLocator.DefaultPath()}\n\nBrowse to opencode.db?";
-        var result = MessageBox.Show(msg, "OpenCode Token Tracker",
-            MessageBoxButton.YesNo, MessageBoxImage.Question);
-        if (result != MessageBoxResult.Yes) return null;
-
-        var dlg = new Microsoft.Win32.OpenFileDialog
+        if (!AttachConsole(-1))
         {
-            Title = "Select opencode.db",
-            Filter = "SQLite DB (opencode.db)|opencode.db|All files|*.*",
-            CheckFileExists = true
-        };
-        if (dlg.ShowDialog() != true) return null;
-        return dlg.FileName;
+            AllocConsole();
+        }
+
+        Console.SetOut(new StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true });
+
+        Console.WriteLine("OpenCode Token Tracker");
+        Console.WriteLine();
+        Console.WriteLine("Usage: TokenTrackerWidget.exe [--db-path <path>] [--help]");
+        Console.WriteLine();
+        Console.WriteLine("Options:");
+        Console.WriteLine("  --db-path <path>  Use an alternative opencode.db location.");
+        Console.WriteLine("  --help            Show this help text and exit.");
+
+        FreeConsole();
+    }
+
+    private static void ShowDatabaseNotFound(string? commandLinePath)
+    {
+        var message = !string.IsNullOrWhiteSpace(commandLinePath)
+            ? $"Database not found: {commandLinePath}"
+            : $"Could not find the opencode database at{Environment.NewLine}{DbLocator.DefaultPath()}{Environment.NewLine}{Environment.NewLine}Use --db-path <path> to specify an alternative location.";
+
+        MessageBox.Show(message, "OpenCode Token Tracker",
+            MessageBoxButton.OK, MessageBoxImage.Error);
+    }
+
+    private sealed class LaunchOptions
+    {
+        public string? DbPath { get; set; }
+        public bool ShowHelp { get; set; }
     }
 }

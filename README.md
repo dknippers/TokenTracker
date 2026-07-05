@@ -58,7 +58,7 @@ Delete it to reset to defaults.
 
 ```
 src/TokenTrackerWidget/
-├─ App.xaml / App.xaml.cs           # bootstraps MainWindow, locates DB, dumps mode
+├─ App.xaml / App.xaml.cs           # bootstraps MainWindow and locates DB
 ├─ MainWindow.xaml / .xaml.cs       # borderless topmost widget + context menu
 ├─ Models/
 │  ├─ DayUsageSnapshot.cs           # today's totals + per-model breakdown

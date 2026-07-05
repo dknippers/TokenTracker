@@ -23,7 +23,7 @@ Key details about the schema:
 ## Architecture
 
 ### Data Layer (`Data/`)
-- **DbLocator** - Resolves the database path (default or override via settings)
+- **DbLocator** - Resolves the database path (default or from the `--db-path` command-line argument)
 - **MessageTableRepository** - Primary repo that queries the `message` table for today's totals and per-model breakdowns
 - **SessionTableSanityChecker** - Unused diagnostic cross-check (not wired up)
 - **IUsageRepository** - Interface for repositories
@@ -39,7 +39,7 @@ Key details about the schema:
 ### Models (`Models/`)
 - **DayUsageSnapshot** - Today's aggregated data (input/output/reasoning/cache tokens, cost, calls, per-model breakdown, active session info)
 - **ModelBreakdown** - Per-model cost and token counts
-- **WidgetSettings** - Persisted JSON settings (window position, opacity, poll interval, always-on-top, db path override)
+- **WidgetSettings** - Persisted JSON settings (window position, opacity, poll interval, always-on-top)
 
 ## Key Design Decisions
 
@@ -55,6 +55,11 @@ dotnet build src\TokenTrackerWidget\TokenTrackerWidget.csproj
 ```
 
 Output: `src\TokenTrackerWidget\bin\Debug\net10.0-windows\TokenTrackerWidget.exe`
+
+## Command-line options
+
+- `--db-path <path>` - Use an alternative `opencode.db` location instead of the default `%USERPROFILE%\.local\share\opencode\opencode.db`.
+- `--help` - Show help text and exit.
 
 ## Settings
 

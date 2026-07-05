@@ -9,5 +9,4 @@ public sealed class WidgetSettings
     [JsonPropertyName("alwaysOnTop")] public bool AlwaysOnTop { get; set; } = true;
     [JsonPropertyName("pollIntervalSeconds")] public double PollIntervalSeconds { get; set; } = 10.0;
     [JsonPropertyName("opacity")] public double Opacity { get; set; } = 1.0;
-    [JsonPropertyName("dbPathOverride")] public string? DatabasePathOverride { get; set; }
 }

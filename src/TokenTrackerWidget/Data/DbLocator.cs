@@ -1,5 +1,4 @@
 using System.IO;
-using TokenTrackerWidget.Models;
 
 namespace TokenTrackerWidget.Data;
 
@@ -11,26 +10,17 @@ public static class DbLocator
         return Path.Combine(profile, ".local", "share", "opencode", "opencode.db");
     }
 
-    public static bool TryResolveDatabasePath(WidgetSettings settings, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out string path, out bool overrideExists)
+    public static string? ResolveDatabasePath(string? commandLinePath)
     {
-        overrideExists = false;
-        if (!string.IsNullOrWhiteSpace(settings.DatabasePathOverride))
+        if (!string.IsNullOrWhiteSpace(commandLinePath))
         {
-            overrideExists = File.Exists(settings.DatabasePathOverride);
-            if (overrideExists)
-            {
-                path = settings.DatabasePathOverride!;
-                return true;
-            }
+            if (File.Exists(commandLinePath))
+                return commandLinePath;
+            return null;
         }
+
         var def = DefaultPath();
-        if (File.Exists(def))
-        {
-            path = def;
-            return true;
-        }
-        path = null!;
-        return false;
+        return File.Exists(def) ? def : null;
     }
 }
 
