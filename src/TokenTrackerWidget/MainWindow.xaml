@@ -7,8 +7,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         mc:Ignorable="d"
         Title="OpenCode Token Tracker"
-         SizeToContent="WidthAndHeight"
-         MinWidth="160"
+        SizeToContent="WidthAndHeight"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -60,7 +59,7 @@
         </Style>
     </Window.Resources>
 
-    <Border CornerRadius="12"
+    <Border CornerRadius="8"
             Background="{StaticResource MicaBg}"
             BorderBrush="{StaticResource MicaStroke}"
             BorderThickness="1"
@@ -69,7 +68,7 @@
         <Border.ContextMenu>
             <ContextMenu x:Name="CardMenu"/>
         </Border.ContextMenu>
-        <StackPanel Margin="16,14">
+        <StackPanel Margin="20,12">
 
                 <!-- Primary Spend Card -->
                 <TextBlock Text="{Binding TodayCostText}" FontFamily="{StaticResource UiFont}" FontSize="32" FontWeight="Bold"
@@ -100,6 +99,7 @@
                                                 <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" EasingFunction="{StaticResource EaseOut}"/>
                                                 <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility">
                                                     <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}"/>
+                                                    <DiscreteObjectKeyFrame KeyTime="0:0:0.25" Value="{x:Static Visibility.Collapsed}"/>
                                                 </ObjectAnimationUsingKeyFrames>
                                             </Storyboard>
                                         </BeginStoryboard>
@@ -108,7 +108,7 @@
                             </Style.Triggers>
                         </Style>
                     </Border.Style>
-                    <ItemsControl ItemsSource="{Binding ModelRows}" Margin="0,12,0,0" Visibility="{Binding IsBreakdownExpanded, Converter={StaticResource BoolToVis}}">
+                    <ItemsControl ItemsSource="{Binding ModelRows}" Margin="0,10,0,0" Visibility="{Binding IsBreakdownExpanded, Converter={StaticResource BoolToVis}}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type vm:ModelRowViewModel}">
                                 <Border CornerRadius="8" Padding="8,6" Margin="0,1"
@@ -131,7 +131,7 @@
                                                    Foreground="{StaticResource OnSurface}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                         <TextBlock Grid.Column="1" Text="{Binding CostText}" FontFamily="{StaticResource MonoFont}" FontSize="11" FontWeight="Medium"
                                                    Foreground="{Binding IsCostHighlighted, Converter={StaticResource ModelCostHighlightBrush}}" VerticalAlignment="Bottom"
-                                                   HorizontalAlignment="Right" Margin="12,0,0,0"/>
+                                                   HorizontalAlignment="Right" Margin="10,0,0,0"/>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
@@ -140,13 +140,13 @@
                 </Border>
 
                 <!-- Usage Details Toggle -->
-                <Button Margin="0,12,0,0"
+                <Button Margin="0,4,0,0"
                         HorizontalAlignment="Center"
                         Style="{StaticResource GhostBtn}"
                         Command="{Binding ToggleBreakdownCommand}">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding BreakdownToggleText}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                        <Path Width="10" Height="10" Stretch="Uniform"
+                        <TextBlock Text="{Binding BreakdownToggleText}" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                        <Path Width="8" Height="8" Stretch="Uniform"
                               Data="M19 9l-7 7-7-7"
                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                               StrokeThickness="2.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
