@@ -29,12 +29,6 @@ public partial class MainWindow : Window
     public event EventHandler? SettingsChanged;
     public WidgetViewModel ViewModel => (WidgetViewModel)DataContext;
 
-    public void NotifyStartupShortcutFailed()
-    {
-        if (DataContext is WidgetViewModel vm)
-            vm.LastErrorText = "startup shortcut failed";
-    }
-
     private void ApplySettingsToVisuals()
     {
         Topmost = _settings.AlwaysOnTop;
