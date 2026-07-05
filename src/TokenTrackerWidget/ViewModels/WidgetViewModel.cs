@@ -63,7 +63,7 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
         else
         {
             var delta = cost - _lastCost;
-            IsTodayCostHighlighted = Math.Abs(delta) > 0.0001;
+            IsTodayCostHighlighted = Math.Abs(delta) >= 0.01;
         }
         _lastCost = cost;
         TodayCostText = cost.ToString("C2", System.Globalization.CultureInfo.GetCultureInfo("en-US"));
