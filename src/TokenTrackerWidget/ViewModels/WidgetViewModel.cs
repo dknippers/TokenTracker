@@ -74,7 +74,7 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
         foreach (var b in snap.Models)
         {
             var key = ModelKey(b);
-            if (b.Cost - _lastModelCosts.GetValueOrDefault(key) > 0.0001)
+            if (b.Cost - _lastModelCosts.GetValueOrDefault(key) >= 0.01)
             {
                 highlightedModels.Add(key);
             }
