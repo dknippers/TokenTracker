@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TokenTrackerWidget.Models;
@@ -35,9 +36,9 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void ToggleBreakdown() => IsBreakdownExpanded = !IsBreakdownExpanded;
 
-    private double _lastCost = 0.0;
+    private string _lastCostText = "$0.00";
     private bool _isFirstUpdate = true;
-    private readonly Dictionary<string, double> _lastModelCosts = new();
+    private readonly Dictionary<string, string> _lastModelCostTexts = new();
 
     public ObservableCollection<ModelRowViewModel> ModelRows { get; } = new();
 
@@ -54,7 +55,7 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
             : snap.ActiveModel;
         IsLive = snap.IsLive;
 
-        var cost = snap.Cost;
+        var costText = snap.Cost.ToString("C2", CultureInfo.GetCultureInfo("en-US"));
         if (_isFirstUpdate)
         {
             IsTodayCostHighlighted = false;
@@ -62,20 +63,20 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
         }
         else
         {
-            var delta = cost - _lastCost;
-            IsTodayCostHighlighted = Math.Abs(delta) >= 0.01;
+            IsTodayCostHighlighted = costText != _lastCostText;
         }
-        _lastCost = cost;
-        TodayCostText = cost.ToString("C2", System.Globalization.CultureInfo.GetCultureInfo("en-US"));
+        _lastCostText = costText;
+        TodayCostText = costText;
 
         CallsText = $"{snap.Calls} {(snap.Calls == 1 ? "call" : "calls")}";
 
         var highlightedModels = new HashSet<string>();
-        var canHighlightModels = _lastModelCosts.Count > 0;
+        var canHighlightModels = _lastModelCostTexts.Count > 0;
         foreach (var b in snap.Models)
         {
             var key = ModelKey(b);
-            if (canHighlightModels && b.Cost - _lastModelCosts.GetValueOrDefault(key) >= 0.01)
+            var modelCostText = b.Cost.ToString("C2", CultureInfo.GetCultureInfo("en-US"));
+            if (canHighlightModels && _lastModelCostTexts.TryGetValue(key, out var prevCostText) && prevCostText != modelCostText)
             {
                 highlightedModels.Add(key);
             }
@@ -92,10 +93,10 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
             ModelRows.Add(row);
         }
 
-        _lastModelCosts.Clear();
+        _lastModelCostTexts.Clear();
         foreach (var b in snap.Models)
         {
-            _lastModelCosts[ModelKey(b)] = b.Cost;
+            _lastModelCostTexts[ModelKey(b)] = b.Cost.ToString("C2", CultureInfo.GetCultureInfo("en-US"));
         }
 
         IsRetrying = false;
