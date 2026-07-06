@@ -70,6 +70,7 @@ public partial class MainWindow : Window
     private void OnCardMouseRightButtonUp(object sender, MouseButtonEventArgs e)
     {
         var menu = BuildMenu();
+        menu.PlacementTarget = this;
         menu.Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint;
         menu.IsOpen = true;
         e.Handled = true;
@@ -91,13 +92,15 @@ public partial class MainWindow : Window
 
     private System.Windows.Controls.ContextMenu BuildMenu()
     {
+        var itemStyle = (System.Windows.Style)FindResource("CardMenuItem");
         var menu = new System.Windows.Controls.ContextMenu();
 
         var onTop = new System.Windows.Controls.MenuItem
         {
             Header = "Always on top",
             IsCheckable = true,
-            IsChecked = _settings.AlwaysOnTop
+            IsChecked = _settings.AlwaysOnTop,
+            Style = itemStyle
         };
         onTop.Click += (_, _) =>
         {
@@ -107,9 +110,9 @@ public partial class MainWindow : Window
         };
         menu.Items.Add(onTop);
 
-        menu.Items.Add(MakeHeader("Poll interval"));
-        var pollSliderItem = new System.Windows.Controls.MenuItem { IsHitTestVisible = true };
-        var pollPanel = new System.Windows.Controls.StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal, Margin = new System.Windows.Thickness(5) };
+        menu.Items.Add(MakeHeader("Poll interval", itemStyle));
+        var pollSliderItem = new System.Windows.Controls.MenuItem { IsHitTestVisible = true, Style = itemStyle };
+        var pollPanel = new System.Windows.Controls.StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal };
         var pollSlider = new System.Windows.Controls.Slider
         {
             Minimum = 5,
@@ -123,10 +126,10 @@ public partial class MainWindow : Window
         var pollLabel = new System.Windows.Controls.TextBlock
         {
             Text = $"{(int)_settings.PollIntervalSeconds}s",
-            Width = 35,
-            TextAlignment = System.Windows.TextAlignment.Right,
+            TextAlignment = System.Windows.TextAlignment.Left,
             VerticalAlignment = System.Windows.VerticalAlignment.Center,
-            Margin = new System.Windows.Thickness(5, 0, 0, 0)
+            Margin = new System.Windows.Thickness(10, 0, 10, 0),
+            Width = 32
         };
         pollSlider.ValueChanged += (_, e) =>
         {
@@ -140,12 +143,10 @@ public partial class MainWindow : Window
         pollSliderItem.Header = pollPanel;
         menu.Items.Add(pollSliderItem);
 
-        menu.Items.Add(new System.Windows.Controls.Separator());
-
-        menu.Items.Add(MakeHeader("Opacity"));
-        var sliderItem = new System.Windows.Controls.MenuItem { IsHitTestVisible = true };
-        var panel = new System.Windows.Controls.StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal, Margin = new System.Windows.Thickness(5) };
-        var slider = new System.Windows.Controls.Slider
+        menu.Items.Add(MakeHeader("Opacity", itemStyle));
+        var opacitySliderItem = new System.Windows.Controls.MenuItem { IsHitTestVisible = true, Style = itemStyle };
+        var opacityPanel = new System.Windows.Controls.StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal };
+        var opacitySlider = new System.Windows.Controls.Slider
         {
             Minimum = 5,
             Maximum = 100,
@@ -155,30 +156,28 @@ public partial class MainWindow : Window
             Width = 120,
             VerticalAlignment = System.Windows.VerticalAlignment.Center
         };
-        var label = new System.Windows.Controls.TextBlock
+        var opacityLabel = new System.Windows.Controls.TextBlock
         {
             Text = $"{(int)(_settings.Opacity * 100)}%",
-            Width = 35,
-            TextAlignment = System.Windows.TextAlignment.Right,
+            TextAlignment = System.Windows.TextAlignment.Left,
             VerticalAlignment = System.Windows.VerticalAlignment.Center,
-            Margin = new System.Windows.Thickness(5, 0, 0, 0)
+            Margin = new System.Windows.Thickness(10, 0, 10, 0),
+            Width = 32
         };
-        slider.ValueChanged += (_, e) =>
+        opacitySlider.ValueChanged += (_, e) =>
         {
             var val = e.NewValue / 100.0;
             _settings.Opacity = val;
             Opacity = val;
-            label.Text = $"{(int)e.NewValue}%";
+            opacityLabel.Text = $"{(int)e.NewValue}%";
             OnSettingsChanged();
         };
-        panel.Children.Add(slider);
-        panel.Children.Add(label);
-        sliderItem.Header = panel;
-        menu.Items.Add(sliderItem);
+        opacityPanel.Children.Add(opacitySlider);
+        opacityPanel.Children.Add(opacityLabel);
+        opacitySliderItem.Header = opacityPanel;
+        menu.Items.Add(opacitySliderItem);
 
-        menu.Items.Add(new System.Windows.Controls.Separator());
-
-        var quit = new System.Windows.Controls.MenuItem { Header = "Quit" };
+        var quit = new System.Windows.Controls.MenuItem { Header = "Quit", Style = itemStyle };
         quit.Click += (_, _) => Close();
         menu.Items.Add(quit);
 
@@ -193,6 +192,13 @@ public partial class MainWindow : Window
             IsEnabled = false,
             FontWeight = FontWeights.SemiBold
         };
+        return item;
+    }
+
+    private System.Windows.Controls.MenuItem MakeHeader(string text, System.Windows.Style style)
+    {
+        var item = MakeHeader(text);
+        item.Style = style;
         return item;
     }
 }
