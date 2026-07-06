@@ -74,7 +74,7 @@ public partial class App : Application
             _window.Top = _settings.Y;
         }
         _window.Topmost = _settings.AlwaysOnTop;
-        _window.Opacity = Math.Clamp(_settings.Opacity, 0.4, 1.0);
+        _window.Opacity = Math.Clamp(_settings.Opacity, 0.05, 1.0);
         _window.Show();
     }
 
@@ -83,7 +83,7 @@ public partial class App : Application
         _settings = ((MainWindow)sender!).Settings;
         _poller.SetInterval(_settings.PollIntervalSeconds);
         _window.Topmost = _settings.AlwaysOnTop;
-        _window.Opacity = Math.Clamp(_settings.Opacity, 0.4, 1.0);
+        _window.Opacity = Math.Clamp(_settings.Opacity, 0.05, 1.0);
         _store.Save(_settings);
     }
 
