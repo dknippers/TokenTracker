@@ -5,35 +5,60 @@ namespace OpenCodeCostMeter.Data;
 
 public sealed class MessageTableRepository : IUsageRepository
 {
+    // GROUP BY (time.created, time.completed) deduplicates forked messages.
+    // Forking clones messages verbatim — same timestamps, same cost — so without
+    // this, forked sessions would double-count their entire message history.
     private const string TotalsSql = @"
 SELECT
-    COALESCE(SUM(json_extract(data, '$.tokens.input')), 0),
-    COALESCE(SUM(json_extract(data, '$.tokens.output')), 0),
-    COALESCE(SUM(json_extract(data, '$.tokens.reasoning')), 0),
-    COALESCE(SUM(json_extract(data, '$.tokens.cache.read')), 0),
-    COALESCE(SUM(json_extract(data, '$.tokens.cache.write')), 0),
-    COALESCE(SUM(json_extract(data, '$.cost')), 0)
-FROM message
-WHERE json_extract(data, '$.role') = 'assistant'
-  AND json_extract(data, '$.time.completed') IS NOT NULL
-  AND CAST(json_extract(data, '$.time.completed') AS INTEGER) >= @start;";
+    COALESCE(SUM(tokens_input), 0),
+    COALESCE(SUM(tokens_output), 0),
+    COALESCE(SUM(tokens_reasoning), 0),
+    COALESCE(SUM(tokens_cache_read), 0),
+    COALESCE(SUM(tokens_cache_write), 0),
+    COALESCE(SUM(cost), 0)
+FROM (
+    SELECT
+        json_extract(data, '$.tokens.input') AS tokens_input,
+        json_extract(data, '$.tokens.output') AS tokens_output,
+        json_extract(data, '$.tokens.reasoning') AS tokens_reasoning,
+        json_extract(data, '$.tokens.cache.read') AS tokens_cache_read,
+        json_extract(data, '$.tokens.cache.write') AS tokens_cache_write,
+        json_extract(data, '$.cost') AS cost
+    FROM message
+    WHERE json_extract(data, '$.role') = 'assistant'
+      AND json_extract(data, '$.time.completed') IS NOT NULL
+      AND CAST(json_extract(data, '$.time.completed') AS INTEGER) >= @start
+    GROUP BY json_extract(data, '$.time.created'),
+             json_extract(data, '$.time.completed')
+);";
 
+    // Inner GROUP BY (time.created, time.completed) deduplicates forked messages.
+    // See TotalsSql comment for rationale.
     private const string PerModelSql = @"
 SELECT
-    COALESCE(json_extract(data, '$.providerID'), ''),
-    COALESCE(json_extract(data, '$.modelID'), ''),
-    COALESCE(SUM(json_extract(data, '$.cost')), 0),
-    COALESCE(SUM(json_extract(data, '$.tokens.input')), 0),
-    COALESCE(SUM(json_extract(data, '$.tokens.output')), 0),
-    COALESCE(SUM(json_extract(data, '$.tokens.cache.read')), 0)
-FROM message
-WHERE json_extract(data, '$.role') = 'assistant'
-  AND json_extract(data, '$.time.completed') IS NOT NULL
-  AND CAST(json_extract(data, '$.time.completed') AS INTEGER) >= @start
-GROUP BY COALESCE(json_extract(data, '$.providerID'), ''),
-         COALESCE(json_extract(data, '$.modelID'), '')
-ORDER BY SUM(json_extract(data, '$.cost')) DESC,
-         COALESCE(json_extract(data, '$.modelID'), '') ASC;";
+    COALESCE(providerID, ''),
+    COALESCE(modelID, ''),
+    COALESCE(SUM(cost), 0),
+    COALESCE(SUM(tokens_input), 0),
+    COALESCE(SUM(tokens_output), 0),
+    COALESCE(SUM(tokens_cache_read), 0)
+FROM (
+    SELECT
+        json_extract(data, '$.providerID') AS providerID,
+        json_extract(data, '$.modelID') AS modelID,
+        json_extract(data, '$.cost') AS cost,
+        json_extract(data, '$.tokens.input') AS tokens_input,
+        json_extract(data, '$.tokens.output') AS tokens_output,
+        json_extract(data, '$.tokens.cache.read') AS tokens_cache_read
+    FROM message
+    WHERE json_extract(data, '$.role') = 'assistant'
+      AND json_extract(data, '$.time.completed') IS NOT NULL
+      AND CAST(json_extract(data, '$.time.completed') AS INTEGER) >= @start
+    GROUP BY json_extract(data, '$.time.created'),
+             json_extract(data, '$.time.completed')
+)
+GROUP BY providerID, modelID
+ORDER BY SUM(cost) DESC, modelID ASC;";
 
     private readonly string _connectionString;
 
