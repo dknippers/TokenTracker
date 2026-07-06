@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using System.Globalization;
 using OpenCodeCostMeter.Models;
+using System.Globalization;
 
 namespace OpenCodeCostMeter.ViewModels;
 

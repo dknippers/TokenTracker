@@ -1,7 +1,7 @@
+using OpenCodeCostMeter.Models;
 using System.IO;
 using System.Text;
 using System.Text.Json;
-using OpenCodeCostMeter.Models;
 
 namespace OpenCodeCostMeter.Services;
 

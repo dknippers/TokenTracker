@@ -1,6 +1,6 @@
-using System.Windows.Threading;
 using OpenCodeCostMeter.Data;
 using OpenCodeCostMeter.Models;
+using System.Windows.Threading;
 
 namespace OpenCodeCostMeter.Services;
 

@@ -1,7 +1,7 @@
-using System.Windows;
-using System.Windows.Input;
 using OpenCodeCostMeter.Models;
 using OpenCodeCostMeter.ViewModels;
+using System.Windows;
+using System.Windows.Input;
 
 namespace OpenCodeCostMeter;
 
