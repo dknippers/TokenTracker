@@ -18,7 +18,7 @@
 
 # Model specific rules
 deepseek-|Deepseek=DeepSeek; =-
-glm-| =-
+glm-|Glm =GLM-
 gpt-|Gpt =GPT-
 mimo-|Mimo=MiMo; =-
 minimax-|Minimax=MiniMax
