@@ -87,11 +87,6 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnRefreshClicked(object sender, RoutedEventArgs e)
-    {
-        ViewModel.ForceNow();
-    }
-
     private void OnCardMouseRightButtonUp(object sender, MouseButtonEventArgs e)
     {
         var menu = BuildMenu();
