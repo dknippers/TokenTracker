@@ -16,3 +16,5 @@
 mimo-|Mimo=MiMo; =-
 deepseek-|Deepseek=DeepSeek; =-
 glm-| =-
+gpt-|Gpt =GPT-
+*| Mini=mini; Nano=nano
