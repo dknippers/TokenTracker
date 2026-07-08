@@ -7,6 +7,8 @@ namespace OpenCodeCostMeter.ViewModels;
 
 public partial class ModelRowViewModel : ObservableObject
 {
+    private static readonly CultureInfo EnUs = CultureInfo.GetCultureInfo("en-US");
+
     public string Header { get; }
     public string CostText { get; }
 
@@ -15,6 +17,6 @@ public partial class ModelRowViewModel : ObservableObject
     public ModelRowViewModel(ModelBreakdown b)
     {
         Header = ModelDisplayNameRules.Format(b.Model);
-        CostText = b.Cost.ToString("C2", CultureInfo.GetCultureInfo("en-US"));
+        CostText = b.Cost.ToString("C2", EnUs);
     }
 }

@@ -19,7 +19,7 @@ The widget reads from opencode's SQLite database at `%USERPROFILE%\.local\share\
 Key details about the schema:
 
 - Uses the `message` table (not `session`) because `session` maintains cumulative tokens across the entire session lifetime, which would incorrectly attribute past tokens to today's date.
-- Each assistant message has a `data` JSON column containing `$.time.completed` (Unix ms timestamp), `$.tokens.*`, `$.cost`, `$.providerID`, and `$.modelID`.
+- Each assistant message has a `data` JSON column containing `$.time.completed` (Unix ms timestamp), `$.cost`, `$.providerID`, and `$.modelID`.
 - The widget filters messages by `$.time.completed` to only count today's calls.
 
 ## Architecture
@@ -28,7 +28,7 @@ Key details about the schema:
 
 - **DbLocator** - Resolves the database path (default or from the `--db-path` command-line argument)
 - **DayKey** - Static helper in `DbLocator.cs`; converts a Unix-ms timestamp to a `yyyy-MM-dd` string
-- **MessageTableRepository** - Primary repo that queries the `message` table for today's totals and per-model breakdowns. Single SQL query with inner `GROUP BY (time.created, time.completed)` to deduplicate forked messages before aggregating per provider/model.
+- **MessageTableRepository** - Primary repo that queries the `message` table for today's per-model cost breakdowns. Single SQL query with inner `GROUP BY (time.created, time.completed)` to deduplicate forked messages before aggregating per provider/model. Selects only `providerID`, `modelID`, and `cost`.
 - **IUsageRepository** - Interface for repositories
 
 ### Services (`Services/`)
@@ -44,8 +44,8 @@ Key details about the schema:
 
 ### Models (`Models/`)
 
-- **DayUsageSnapshot** - Today's aggregated data (`DayKey`, input/output/reasoning/cacheRead/cacheWrite tokens, cost, per-model breakdown, taken-at timestamp)
-- **ModelBreakdown** - Per-model cost and token counts
+- **DayUsageSnapshot** - Today's aggregated data (`DayKey`, cost, per-model breakdown, taken-at timestamp)
+- **ModelBreakdown** - Per-model cost
 - **WidgetSettings** - Persisted JSON settings (window position, opacity, poll interval, always-on-top)
 
 ## Key Design Decisions

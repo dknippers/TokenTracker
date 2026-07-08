@@ -10,6 +10,8 @@ namespace OpenCodeCostMeter.ViewModels;
 
 public partial class WidgetViewModel : ObservableObject, IDisposable
 {
+    private static readonly CultureInfo EnUs = CultureInfo.GetCultureInfo("en-US");
+
     private readonly UsagePoller _poller;
     private readonly DispatcherTimer _highlightTimer;
     private bool _disposed;
@@ -31,7 +33,6 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
     {
         _highlightTimer.Stop();
         IsTodayCostHighlighted = false;
-        _highlightedModelKeys.Clear();
         foreach (var row in ModelRows)
         {
             row.IsCostHighlighted = false;
@@ -54,8 +55,8 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
 
     private string _lastCostText = "$0.00";
     private bool _isFirstUpdate = true;
-    private readonly Dictionary<string, string> _lastModelCostTexts = new();
-    private readonly HashSet<string> _highlightedModelKeys = new();
+    private Dictionary<string, string> _lastModelCostTexts = new();
+    private readonly Dictionary<string, ModelRowViewModel> _rowsByKey = new();
 
     public ObservableCollection<ModelRowViewModel> ModelRows { get; } = new();
 
@@ -65,43 +66,79 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
 
     private void OnUpdated(object? sender, DayUsageSnapshot snap)
     {
-        var costText = snap.Cost.ToString("C2", CultureInfo.GetCultureInfo("en-US"));
-        bool anyHighlight = false;
-        if (!_isFirstUpdate && costText != _lastCostText)
+        var costText = snap.Cost.ToString("C2", EnUs);
+        bool totalChanged;
+        if (_isFirstUpdate)
         {
-            IsTodayCostHighlighted = true;
-            anyHighlight = true;
+            totalChanged = false;
+            _isFirstUpdate = false;
         }
-        _isFirstUpdate = false;
+        else
+        {
+            totalChanged = costText != _lastCostText;
+        }
+        IsTodayCostHighlighted = totalChanged;
         _lastCostText = costText;
         TodayCostText = costText;
 
-        var newlyHighlighted = new HashSet<string>();
-        var canHighlightModels = _lastModelCostTexts.Count > 0;
+        var anyHighlight = totalChanged;
+        var canHighlight = _lastModelCostTexts.Count > 0;
+        var nextCostTexts = new Dictionary<string, string>(snap.Models.Count);
+        var visibleKeys = new List<string>(snap.Models.Count);
+
+        // Single pass: detect highlights, reuse/create rows, capture next cost texts.
         foreach (var b in snap.Models)
         {
             var key = ModelKey(b);
-            var modelCostText = b.Cost.ToString("C2", CultureInfo.GetCultureInfo("en-US"));
-            if (canHighlightModels && _lastModelCostTexts.TryGetValue(key, out var prevCostText) && prevCostText != modelCostText)
+            var modelCostText = b.Cost.ToString("C2", EnUs);
+            nextCostTexts[key] = modelCostText;
+
+            if (b.Cost < 0.005) continue;
+
+            var newlyHighlighted = canHighlight
+                && _lastModelCostTexts.TryGetValue(key, out var prev) && prev != modelCostText;
+            if (newlyHighlighted) anyHighlight = true;
+
+            visibleKeys.Add(key);
+
+            ModelRowViewModel row;
+            if (_rowsByKey.TryGetValue(key, out var existing))
             {
-                newlyHighlighted.Add(key);
+                row = existing;
             }
+            else
+            {
+                row = new ModelRowViewModel(b);
+                _rowsByKey[key] = row;
+            }
+            row.IsCostHighlighted = newlyHighlighted;
         }
 
-        _highlightedModelKeys.IntersectWith(snap.Models.Select(ModelKey));
-        _highlightedModelKeys.UnionWith(newlyHighlighted);
-
-        ModelRows.Clear();
-        foreach (var b in snap.Models)
+        // Diff ModelRows: only rebuild if the visible key sequence changed.
+        var sameSequence = ModelRows.Count == visibleKeys.Count;
+        for (var i = 0; sameSequence && i < visibleKeys.Count; i++)
         {
-            if (b.Cost < 0.005) continue;
-            var key = ModelKey(b);
-            var row = new ModelRowViewModel(b)
-            {
-                IsCostHighlighted = _highlightedModelKeys.Contains(key)
-            };
-            if (row.IsCostHighlighted) anyHighlight = true;
-            ModelRows.Add(row);
+            if (!ReferenceEquals(ModelRows[i], _rowsByKey[visibleKeys[i]]))
+                sameSequence = false;
+        }
+
+        if (!sameSequence && visibleKeys.Count == 0)
+        {
+            ModelRows.Clear();
+        }
+        else if (!sameSequence)
+        {
+            ModelRows.Clear();
+            foreach (var key in visibleKeys)
+                ModelRows.Add(_rowsByKey[key]);
+        }
+
+        // Remove stale entries from _rowsByKey (rows no longer in any snapshot).
+        if (_rowsByKey.Count > nextCostTexts.Count)
+        {
+            var stale = _rowsByKey.Keys.Except(nextCostTexts.Keys).ToList();
+            foreach (var key in stale)
+                _rowsByKey.Remove(key);
         }
 
         if (anyHighlight)
@@ -110,11 +147,7 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
             _highlightTimer.Start();
         }
 
-        _lastModelCostTexts.Clear();
-        foreach (var b in snap.Models)
-        {
-            _lastModelCostTexts[ModelKey(b)] = b.Cost.ToString("C2", CultureInfo.GetCultureInfo("en-US"));
-        }
+        _lastModelCostTexts = nextCostTexts;
 
         HasModels = ModelRows.Count > 0;
         IsRetrying = false;
