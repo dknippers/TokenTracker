@@ -41,9 +41,6 @@ public sealed class UsagePoller : IDisposable
         if (wasRunning) _timer.Start();
     }
 
-    public void Force()
-        => _ = OnTickAsync();
-
     private void OnTick(object? sender, EventArgs e)
         => _ = OnTickAsync();
 

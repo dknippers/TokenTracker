@@ -62,7 +62,6 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
     private ObservableCollection<ModelRowViewModel> _modelRows = new();
 
     public void Start() => _poller.Start();
-    public void ForceNow() => _poller.Force();
     public void SetInterval(double s) => _poller.SetInterval(s);
 
     private void OnUpdated(object? sender, DayUsageSnapshot snap)

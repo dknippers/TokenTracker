@@ -26,7 +26,6 @@
         <conv:BoolToDoubleConverter x:Key="ExpandAngle" TrueValue="180" FalseValue="0"/>
         <conv:BoolToBrushConverter x:Key="AmountHighlightBrush" TrueBrush="{StaticResource Secondary}" FalseBrush="{StaticResource OnSurface}"/>
         <conv:BoolToBrushConverter x:Key="ModelCostHighlightBrush" TrueBrush="{StaticResource Secondary}" FalseBrush="{StaticResource OnSurfaceVariant}"/>
-        <CubicEase x:Key="EaseOut" EasingMode="EaseOut"/>
         <FontFamily x:Key="UiFont">Segoe UI Variable, Segoe UI</FontFamily>
         <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas</FontFamily>
         <Style TargetType="Border">
@@ -79,19 +78,6 @@
                                 BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="0" Padding="{TemplateBinding Padding}">
                             <StackPanel IsItemsHost="True"/>
                         </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="CardSeparator" TargetType="Separator">
-            <Setter Property="Margin" Value="6,2"/>
-            <Setter Property="Height" Value="1"/>
-            <Setter Property="Background" Value="{StaticResource MicaStroke}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Separator">
-                        <Border Height="{TemplateBinding Height}" Background="{TemplateBinding Background}" CornerRadius="0"/>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
