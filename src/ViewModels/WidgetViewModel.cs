@@ -124,12 +124,16 @@ public partial class WidgetViewModel : ObservableObject, IDisposable
                 sameSequence = false;
         }
 
-        if (!sameSequence)
+        if (!sameSequence && visibleKeys.Count == 0)
         {
-            var newRows = new ObservableCollection<ModelRowViewModel>();
+            ModelRows.Clear();
+        }
+        else if (!sameSequence)
+        {
+            var newRows = new List<ModelRowViewModel>(visibleKeys.Count);
             foreach (var key in visibleKeys)
                 newRows.Add(_rowsByKey[key]);
-            ModelRows = newRows;
+            ModelRows = new ObservableCollection<ModelRowViewModel>(newRows);
         }
 
         // Remove stale entries from _rowsByKey (rows no longer in any snapshot).
