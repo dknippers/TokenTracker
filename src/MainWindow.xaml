@@ -84,7 +84,7 @@
 
     </Window.Resources>
 
-    <Border CornerRadius="6"
+    <Border CornerRadius="4"
             Background="{StaticResource MicaBg}"
             BorderBrush="{StaticResource MicaStroke}"
             BorderThickness="1"
