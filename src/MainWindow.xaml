@@ -23,6 +23,7 @@
         <SolidColorBrush x:Key="Secondary" Color="#61DBB4"/>
         <SolidColorBrush x:Key="RowHover" Color="#2A2A2A"/>
         <conv:BoolToVisibilityConverter x:Key="BoolToVis"/>
+        <conv:BoolToVisibilityConverter x:Key="BoolToCollapsed" TrueVisibility="Collapsed" FalseVisibility="Visible"/>
         <conv:BoolToBrushConverter x:Key="AmountHighlightBrush" TrueBrush="{StaticResource Secondary}" FalseBrush="{StaticResource OnSurface}"/>
         <conv:BoolToBrushConverter x:Key="ModelCostHighlightBrush" TrueBrush="{StaticResource Secondary}" FalseBrush="{StaticResource OnSurfaceVariant}"/>
         <FontFamily x:Key="UiFont">Segoe UI Variable, Segoe UI</FontFamily>
@@ -103,97 +104,100 @@
         <Border.ContextMenu>
             <ContextMenu/>
         </Border.ContextMenu>
+        
         <StackPanel>
+            <!-- Normal content (hidden on error) -->
+            <StackPanel Visibility="{Binding HasError, Converter={StaticResource BoolToCollapsed}}">
+                <!-- Primary Spend Card -->
+                <TextBlock Text="{Binding TodayCostText}" FontFamily="{StaticResource MonoFont}" FontSize="26" FontWeight="Bold"
+                               Foreground="{Binding IsTodayCostHighlighted, Converter={StaticResource AmountHighlightBrush}}"
+                               HorizontalAlignment="Center"/>
 
-            <!-- Primary Spend Card -->
-            <TextBlock Text="{Binding TodayCostText}" FontFamily="{StaticResource MonoFont}" FontSize="26" FontWeight="Bold"
-                           Foreground="{Binding IsTodayCostHighlighted, Converter={StaticResource AmountHighlightBrush}}"
-                           HorizontalAlignment="Center"/>
+                <TextBlock Text="no usage yet" FontFamily="{StaticResource MonoFont}" FontSize="14"
+                           Foreground="{StaticResource OnSurfaceVariant}" HorizontalAlignment="Center" Margin="0,12,0,4">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsExpanded}" Value="True"/>
+                                        <Condition Binding="{Binding HasModels}" Value="False"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
 
-            <TextBlock Text="no usage yet" FontFamily="{StaticResource MonoFont}" FontSize="14"
-                       Foreground="{StaticResource OnSurfaceVariant}" HorizontalAlignment="Center" Margin="0,12,0,4">
-                <TextBlock.Style>
-                    <Style TargetType="TextBlock">
-                        <Setter Property="Visibility" Value="Collapsed"/>
-                        <Style.Triggers>
-                            <MultiDataTrigger>
-                                <MultiDataTrigger.Conditions>
-                                    <Condition Binding="{Binding IsExpanded}" Value="True"/>
-                                    <Condition Binding="{Binding HasModels}" Value="False"/>
-                                </MultiDataTrigger.Conditions>
-                                <Setter Property="Visibility" Value="Visible"/>
-                            </MultiDataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </TextBlock.Style>
-            </TextBlock>
-
-            <StackPanel Visibility="{Binding HasModels, Converter={StaticResource BoolToVis}}">
-                <!-- Breakdown List -->
-                <Border ClipToBounds="True" MaxHeight="320" Margin="0,4"
-                        Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVis}}">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
-                        <ScrollViewer.Resources>
-                            <Style TargetType="ScrollBar">
-                                <Setter Property="OverridesDefaultStyle" Value="True"/>
-                                <Setter Property="Background" Value="Transparent"/>
-                                <Setter Property="Width" Value="5"/>
-                                <Setter Property="Margin" Value="16,10,0,2"/>
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="ScrollBar">
-                                            <Track x:Name="PART_Track" IsDirectionReversed="True" IsEnabled="{TemplateBinding IsEnabled}">
-                                                <Track.Thumb>
-                                                    <Thumb>
-                                                        <Thumb.Template>
-                                                            <ControlTemplate TargetType="Thumb">
-                                                                <Border Background="{StaticResource OnSurface}" CornerRadius="2"/>
-                                                            </ControlTemplate>
-                                                        </Thumb.Template>
-                                                    </Thumb>
-                                                </Track.Thumb>
-                                            </Track>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </ScrollViewer.Resources>
-                        <ItemsControl ItemsSource="{Binding ModelRows}" FocusVisualStyle="{x:Null}" Focusable="False">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate DataType="{x:Type vm:ModelRowViewModel}">
-                                    <Border CornerRadius="0" Margin="0,12,0,0" Background="Transparent">
-                                        <Border.Style>
-                                            <Style TargetType="Border">
-                                                <Style.Triggers>
-                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter Property="Background" Value="{StaticResource RowHover}"/>
-                                                    </Trigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="{Binding Header}" FontFamily="{StaticResource MonoFont}" FontSize="14" FontWeight="Medium"
-                                                       Foreground="{StaticResource OnSurface}" VerticalAlignment="Bottom" TextTrimming="CharacterEllipsis"/>
-                                            <TextBlock Grid.Column="1" Text="{Binding CostText}" FontFamily="{StaticResource MonoFont}" FontSize="14" FontWeight="Medium"
-                                                       Foreground="{Binding IsCostHighlighted, Converter={StaticResource ModelCostHighlightBrush}}" VerticalAlignment="Bottom"
-                                                       HorizontalAlignment="Right" Margin="16,0,0,0"/>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </Border>
+                <StackPanel Visibility="{Binding HasModels, Converter={StaticResource BoolToVis}}">
+                    <!-- Breakdown List -->
+                    <Border ClipToBounds="True" MaxHeight="320" Margin="0,4"
+                            Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVis}}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                            <ScrollViewer.Resources>
+                                <Style TargetType="ScrollBar">
+                                    <Setter Property="OverridesDefaultStyle" Value="True"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="Width" Value="5"/>
+                                    <Setter Property="Margin" Value="16,10,0,2"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ScrollBar">
+                                                <Track x:Name="PART_Track" IsDirectionReversed="True" IsEnabled="{TemplateBinding IsEnabled}">
+                                                    <Track.Thumb>
+                                                        <Thumb>
+                                                            <Thumb.Template>
+                                                                <ControlTemplate TargetType="Thumb">
+                                                                    <Border Background="{StaticResource OnSurface}" CornerRadius="2"/>
+                                                                </ControlTemplate>
+                                                            </Thumb.Template>
+                                                        </Thumb>
+                                                    </Track.Thumb>
+                                                </Track>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ScrollViewer.Resources>
+                            <ItemsControl ItemsSource="{Binding ModelRows}" FocusVisualStyle="{x:Null}" Focusable="False">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type vm:ModelRowViewModel}">
+                                        <Border CornerRadius="0" Margin="0,12,0,0" Background="Transparent">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Style.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="Background" Value="{StaticResource RowHover}"/>
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0" Text="{Binding Header}" FontFamily="{StaticResource MonoFont}" FontSize="14" FontWeight="Medium"
+                                                           Foreground="{StaticResource OnSurface}" VerticalAlignment="Bottom" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding CostText}" FontFamily="{StaticResource MonoFont}" FontSize="14" FontWeight="Medium"
+                                                           Foreground="{Binding IsCostHighlighted, Converter={StaticResource ModelCostHighlightBrush}}" VerticalAlignment="Bottom"
+                                                           HorizontalAlignment="Right" Margin="16,0,0,0"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+                </StackPanel>
             </StackPanel>
 
-            <!-- Retry indicator -->
-            <StackPanel Margin="0,8,0,0" Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}">
-                <TextBlock Text="{Binding ErrorText}" FontFamily="{StaticResource MonoFont}" FontSize="11" Foreground="#E0B341"
-                               MaxWidth="240" TextWrapping="Wrap"/>
+            <!-- Error text (shown only on error) -->
+            <StackPanel Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="{Binding ErrorText}" FontFamily="{StaticResource MonoFont}" FontSize="14" Foreground="#E0B341"
+                               MaxWidth="360" TextWrapping="Wrap"/>
             </StackPanel>
         </StackPanel>
     </Border>
