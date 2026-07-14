@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.IO;
-using System.Reflection;
 using System.Text;
 
 namespace OpenCodeCostMeter.Services;
@@ -76,7 +75,7 @@ public static class ModelDisplayNameRules
 
     private static string? ConfigPath()
     {
-        var exeDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        var exeDir = AppContext.BaseDirectory;
         return exeDir == null ? null : Path.Combine(exeDir, "model-display-names.txt");
     }
 
