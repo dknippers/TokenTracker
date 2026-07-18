@@ -28,6 +28,7 @@ public partial class MainWindow : Window
 
     private readonly IBrush _onSurface;
     private readonly IBrush _onSurfaceVariant;
+    private readonly IBrush _secondary;
     private readonly FontFamily _uiFont;
 
     [Flags]
@@ -50,6 +51,7 @@ public partial class MainWindow : Window
 
         _onSurface = (IBrush)Resources["OnSurface"]!;
         _onSurfaceVariant = (IBrush)Resources["OnSurfaceVariant"]!;
+        _secondary = (IBrush)Resources["Secondary"]!;
         _uiFont = (FontFamily)Resources["UiFont"]!;
 
         CardBorder.PointerPressed += OnCardPointerPressed;
@@ -422,25 +424,31 @@ public partial class MainWindow : Window
         var flyout = new Flyout();
         var panel = new StackPanel();
 
-        // Always on top
-        var onTop = new CheckBox
+        // Always on top (dot checkmark, like the old WPF menu)
+        var onTopDot = new TextBlock
         {
-            Content = MakeMenuRow("Always on top", "A"),
-            IsChecked = _settings.AlwaysOnTop
+            Text = "\u25CF",
+            FontSize = 6,
+            FontWeight = FontWeight.Bold,
+            Foreground = _secondary,
+            TextAlignment = TextAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            IsVisible = _settings.AlwaysOnTop
         };
-        onTop.Classes.Add("menu");
-        onTop.IsCheckedChanged += (_, _) =>
+        var onTopItem = MakeMenuButton("Always on top", "A", onTopDot);
+        onTopItem.Click += (_, _) =>
         {
-            if (_syncingFlyout) return;
-            _settings.AlwaysOnTop = onTop.IsChecked == true;
+            flyout.Hide();
+            _settings.AlwaysOnTop = !_settings.AlwaysOnTop;
+            onTopDot.IsVisible = _settings.AlwaysOnTop;
             Topmost = _settings.AlwaysOnTop;
             OnSettingsChanged();
         };
-        panel.Children.Add(onTop);
+        panel.Children.Add(onTopItem);
 
         // Poll interval
         panel.Children.Add(MakeHeader("Poll interval"));
-        var pollPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(4, 2, 4, 2) };
+        var pollPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(20, 2, 4, 2) };
         var pollSlider = new Slider
         {
             Minimum = 5,
@@ -466,7 +474,7 @@ public partial class MainWindow : Window
 
         // Opacity
         panel.Children.Add(MakeHeader("Opacity"));
-        var opacityPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(4, 2, 4, 2) };
+        var opacityPanel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(20, 2, 4, 2) };
         var opacitySlider = new Slider
         {
             Minimum = 5,
@@ -533,7 +541,7 @@ public partial class MainWindow : Window
             _syncingFlyout = true;
             try
             {
-                onTop.IsChecked = _settings.AlwaysOnTop;
+                onTopDot.IsVisible = _settings.AlwaysOnTop;
                 pollSlider.Value = _settings.PollIntervalSeconds;
                 opacitySlider.Value = _settings.Opacity * 100;
             }
@@ -547,10 +555,25 @@ public partial class MainWindow : Window
         return flyout;
     }
 
-    private Control MakeMenuRow(string text, string? hint)
+    private Control MakeMenuRow(string text, string? hint, Control? leading = null)
     {
-        var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
-        grid.Children.Add(new TextBlock { Text = text, VerticalAlignment = VerticalAlignment.Center });
+        // Column layout matches the old WPF menu item template: 12px check
+        // column, content, gesture hint.
+        var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("12,*,Auto") };
+
+        if (leading != null)
+        {
+            grid.Children.Add(leading);
+        }
+
+        var label = new TextBlock
+        {
+            Text = text,
+            Margin = new Thickness(4, 0, 0, 0),
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        Grid.SetColumn(label, 1);
+        grid.Children.Add(label);
 
         if (!string.IsNullOrEmpty(hint))
         {
@@ -558,19 +581,19 @@ public partial class MainWindow : Window
             {
                 Text = hint,
                 Foreground = _onSurfaceVariant,
-                Margin = new Thickness(24, 0, 8, 0),
+                Margin = new Thickness(0, 0, 16, 0),
                 VerticalAlignment = VerticalAlignment.Center
             };
-            Grid.SetColumn(hintBlock, 1);
+            Grid.SetColumn(hintBlock, 2);
             grid.Children.Add(hintBlock);
         }
 
         return grid;
     }
 
-    private Button MakeMenuButton(string text, string? hint)
+    private Button MakeMenuButton(string text, string? hint, Control? leading = null)
     {
-        var button = new Button { Content = MakeMenuRow(text, hint) };
+        var button = new Button { Content = MakeMenuRow(text, hint, leading) };
         button.Classes.Add("menu");
         return button;
     }
@@ -586,7 +609,7 @@ public partial class MainWindow : Window
     {
         Text = text,
         Width = 32,
-        Margin = new Thickness(10, 0, 6, 0),
+        Margin = new Thickness(10, 0, 10, 0),
         VerticalAlignment = VerticalAlignment.Center,
         Foreground = _onSurface,
         FontFamily = _uiFont,

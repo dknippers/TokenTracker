@@ -82,9 +82,8 @@
       <Setter Property="Background" Value="{StaticResource MicaBg}"/>
       <Setter Property="BorderBrush" Value="{StaticResource MicaStroke}"/>
       <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="CornerRadius" Value="4"/>
-      <Setter Property="Padding" Value="6"/>
-      <Setter Property="MinWidth" Value="220"/>
+      <Setter Property="CornerRadius" Value="0"/>
+      <Setter Property="Padding" Value="0"/>
     </Style>
 
     <!-- Flyout text/buttons -->
@@ -92,7 +91,7 @@
       <Setter Property="Foreground" Value="{StaticResource OnSurfaceVariant}"/>
       <Setter Property="FontSize" Value="12"/>
       <Setter Property="FontWeight" Value="SemiBold"/>
-      <Setter Property="Margin" Value="4,10,0,2"/>
+      <Setter Property="Margin" Value="20,8,0,8"/>
     </Style>
     <Style Selector="Button.menu">
       <Setter Property="Background" Value="Transparent"/>
@@ -100,7 +99,7 @@
       <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
       <Setter Property="FontSize" Value="12"/>
       <Setter Property="FontWeight" Value="Medium"/>
-      <Setter Property="Padding" Value="4,8"/>
+      <Setter Property="Padding" Value="4,8,0,8"/>
       <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="CornerRadius" Value="0"/>
       <Setter Property="HorizontalAlignment" Value="Stretch"/>
@@ -108,15 +107,6 @@
     </Style>
     <Style Selector="Button.menu:pointerover">
       <Setter Property="Background" Value="{StaticResource RowHover}"/>
-    </Style>
-    <Style Selector="CheckBox.menu">
-      <Setter Property="Foreground" Value="{StaticResource OnSurface}"/>
-      <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
-      <Setter Property="FontSize" Value="12"/>
-      <Setter Property="FontWeight" Value="Medium"/>
-      <Setter Property="Padding" Value="4,8"/>
-      <Setter Property="HorizontalAlignment" Value="Stretch"/>
-      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
     </Style>
 
     <!-- Menu sliders: thin 4px track, filled portion in Secondary, round thumb -->
@@ -152,10 +142,11 @@
                   </RepeatButton.Template>
                 </RepeatButton>
               </Track.IncreaseButton>
-              <Thumb Name="thumb" Width="12" Height="12">
+              <Thumb Name="thumb">
                 <Thumb.Template>
                   <ControlTemplate>
-                    <Ellipse Fill="{StaticResource OnSurface}" Stroke="{StaticResource MicaStroke}" StrokeThickness="1"/>
+                    <Ellipse Width="12" Height="12"
+                             Fill="{StaticResource OnSurface}" Stroke="{StaticResource MicaStroke}" StrokeThickness="1"/>
                   </ControlTemplate>
                 </Thumb.Template>
               </Thumb>
