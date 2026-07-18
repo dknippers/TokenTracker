@@ -254,33 +254,37 @@ public partial class MainWindow : Window
         if (dx <= DragThreshold && dy <= DragThreshold) return;
 
         _isDragging = true;
+        _previousResizeAnchor = null;
         e.Pointer.Capture(null);
+        // BeginMoveDrag does not block on Win32: it posts the modal WM_SYSCOMMAND
+        // move loop to the dispatcher and returns immediately. _isDragging must
+        // therefore stay set until OnCardPointerReleased, which Avalonia reaches
+        // via the WM_LBUTTONUP it synthesizes when the move loop ends.
         BeginMoveDrag(_pressedArgs);
-        _isDragging = false;
         _dragStartPosition = null;
         _pressedArgs = null;
-        _previousResizeAnchor = null;
-    }
-
-    protected override void OnPointerReleased(PointerReleasedEventArgs e)
-    {
-        base.OnPointerReleased(e);
-        SnapToEdgeIfOutOfBounds();
     }
 
     private void OnCardPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
         if (e.InitialPressMouseButton != MouseButton.Left) return;
 
-        if (!_isDragging && !e.Handled)
-        {
-            ViewModel.ToggleExpandCommand.Execute(null);
-        }
+        var wasDragging = _isDragging;
 
         _isDragging = false;
         _dragStartPosition = null;
         _pressedArgs = null;
         e.Pointer.Capture(null);
+
+        if (wasDragging)
+        {
+            SnapToEdgeIfOutOfBounds();
+        }
+        else if (!e.Handled)
+        {
+            ViewModel.ToggleExpandCommand.Execute(null);
+        }
+
         e.Handled = true;
     }
 
