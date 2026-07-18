@@ -10,6 +10,9 @@
     <AssemblyProduct>OpenCode Cost Meter</AssemblyProduct>
     <NoWarn>$(NoWarn);NU1903</NoWarn>
     <DebugType>embedded</DebugType>
+    <!-- Avalonia 12 enables compiled bindings by default; keep v11 reflection
+         behavior since no x:DataType is set anywhere. -->
+    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,11 +25,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="11.3.18" />
-    <PackageReference Include="Avalonia.Themes.Simple" Version="11.3.18" />
-    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.18" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.0" />
+    <PackageReference Include="Avalonia.Themes.Simple" Version="12.1.0" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.0" />
     <PackageReference Include="Fonts.Avalonia.CascadiaCode" Version="0.14.0" />
-    <PackageReference Include="Avalonia.Diagnostics" Version="11.3.18" Condition="'$(Configuration)' == 'Debug'" />
   </ItemGroup>
 
   <ItemGroup>

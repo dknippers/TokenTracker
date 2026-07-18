@@ -3,7 +3,7 @@
         x:Class="OpenCodeCostMeter.MainWindow"
         Title="OpenCode Cost Meter"
         SizeToContent="WidthAndHeight"
-        SystemDecorations="None"
+        WindowDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent"
         ShowInTaskbar="False"

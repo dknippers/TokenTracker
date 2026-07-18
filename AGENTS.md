@@ -4,13 +4,14 @@
 
 OpenCode Cost Meter is a Windows 11 desktop widget that displays today's OpenCode LLM spend in real-time, broken down by model. It reads the opencode SQLite database directly (read-only) and refreshes every few seconds.
 
-The UI is built with Avalonia UI v11 (ported from WPF) and the codebase is platform-clean: all non-UI logic lives in a platform-agnostic core project, so adding a macOS target is a trivial follow-up.
+The UI is built with Avalonia UI v12 (ported from WPF) and the codebase is platform-clean: all non-UI logic lives in a platform-agnostic core project, so adding a macOS target is a trivial follow-up.
 
 ## Tech Stack
 
 - **.NET 10** (plain `net10.0` for both projects — **no** `-windows` TFM)
-- **Avalonia UI** 11.3.18 (`Avalonia.Desktop`, `Avalonia.Themes.Simple`) - cross-platform UI
-- **Avalonia.Fonts.Inter** 11.3.18 + **Fonts.Avalonia.CascadiaCode** 0.14.0 - embedded fonts (no system-font dependencies)
+- **Avalonia UI** 12.1.0 (`Avalonia.Desktop`, `Avalonia.Themes.Simple`) - cross-platform UI
+- **Avalonia.Fonts.Inter** 12.1.0 + **Fonts.Avalonia.CascadiaCode** 0.14.0 - embedded fonts (no system-font dependencies)
+- **Compiled bindings disabled** (`AvaloniaUseCompiledBindingsByDefault=false`) - Avalonia 12 enables them by default; the XAML has no `x:DataType`, so v11-style reflection bindings are kept. Adding `x:DataType` and opting in is a possible follow-up.
 - **CommunityToolkit.Mvvm** 8.4.2 - MVVM framework
 - **Microsoft.Data.Sqlite** 10.0.9 - SQLite access
 - **SQLitePCLRaw.lib.e_sqlite3** 2.1.11 - native SQLite
