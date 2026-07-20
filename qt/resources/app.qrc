@@ -1,6 +1,6 @@
 <RCC>
   <qresource prefix="/">
-    <file>icon.svg</file>
+    <file>icon.ico</file>
     <file>licenses/Cascadia-OFL-1.1.txt</file>
     <file>licenses/Inter-OFL-1.1.txt</file>
   </qresource>

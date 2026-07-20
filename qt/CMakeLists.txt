@@ -47,6 +47,9 @@ qt_add_executable(OpenCodeCostMeter
     src/services.h src/services.cpp
     src/widget_window.h src/widget_window.cpp
     resources/app.qrc)
+if(WIN32)
+    target_sources(OpenCodeCostMeter PRIVATE resources/app.rc)
+endif()
 qt_add_resources(OpenCodeCostMeter "application_fonts" PREFIX "/fonts" BASE "${FONT_DIR}"
     FILES "${FONT_DIR}/CascadiaMono.ttf" "${FONT_DIR}/Inter-Regular.ttf")
 target_link_libraries(OpenCodeCostMeter PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Sql)

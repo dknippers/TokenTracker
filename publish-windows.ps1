@@ -127,7 +127,7 @@ Invoke-Native $windeployqt @(
     "--no-translations",
     "--no-network",
     "--skip-plugin-types", "generic,networkinformation,tls",
-    "--exclude-plugins", "qgif,qico,qjpeg,qsqlibase,qsqlmimer,qsqloci,qsqlodbc,qsqlpsql",
+    "--exclude-plugins", "qgif,qjpeg,qsqlibase,qsqlmimer,qsqloci,qsqlodbc,qsqlpsql",
     "--dir", $stageDir,
     $executable
 )
