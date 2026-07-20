@@ -31,3 +31,5 @@ By default the widget reads from `~/.local/share/opencode/opencode.db`. To use a
 Settings are stored as `OpenCodeCostMeter.settings.json` in the platform application-config directory. The model display-name rules file remains next to the executable.
 
 The application embeds Cascadia Mono (SIL OFL 1.1) and Inter (SIL OFL 1.1). Segoe UI is not bundled because Microsoft does not grant general font redistribution rights with Windows. See `THIRD-PARTY-NOTICES.md`.
+
+The active implementation is the Qt application under `qt/`. The former Windows-only WPF/.NET implementation has been removed.

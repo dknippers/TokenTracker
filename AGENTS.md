@@ -2,107 +2,64 @@
 
 ## Project Overview
 
-OpenCode Cost Meter is a Windows 11 desktop widget that displays today's OpenCode LLM spend in real-time, broken down by model. It reads the opencode SQLite database directly (read-only) and refreshes every few seconds.
+OpenCode Cost Meter is a cross-platform Qt desktop widget that displays today's OpenCode LLM spend in real time, broken down by model. It reads the OpenCode SQLite database directly in read-only mode.
 
 ## Tech Stack
 
-- **.NET 10** (WPF + Windows Forms, Windows target)
-- **CommunityToolkit.Mvvm** 8.4.2 - MVVM framework
-- **Microsoft.Data.Sqlite** 10.0.9 - SQLite access
-- **SQLitePCLRaw.lib.e_sqlite3** 2.1.11 - native SQLite
-- **System.Windows.Forms.NotifyIcon** - system tray icon
+- Qt 6.8+ Widgets, SQL, and Test
+- C++20
+- CMake 3.25+
+- Qt `QSystemTrayIcon` for tray integration
+- Qt SQLite driver for database access
+
+## Active Project
+
+The only active application is under `qt/`. Do not reintroduce the removed WPF/.NET implementation or Windows-only APIs unless explicitly requested.
+
+```text
+qt/
+├─ resources/                    # Icon, fonts, notices, and display-name rules
+├─ src/models.h                  # Shared value types
+├─ src/services.*                # Database, polling, settings, and formatting
+├─ src/widget_window.*           # Frameless widget and interactions
+├─ src/main.cpp                  # Application startup and tray lifecycle
+├─ tests/                        # Qt Test coverage
+└─ CMakeLists.txt
+```
 
 ## Database
 
-The widget reads from opencode's SQLite database at `%USERPROFILE%\.local\share\opencode\opencode.db`.
+The application reads `~/.local/share/opencode/opencode.db` by default, or a path supplied with `--db-path`. It uses the `message` table rather than `session` because session totals are cumulative. Assistant messages are filtered by `$.time.completed` and forked messages are deduplicated by created/completed timestamps before aggregation.
 
-Key details about the schema:
+Database access must remain read-only and off the GUI thread. Preserve the existing SQL accounting semantics when changing the repository.
 
-- Uses the `message` table (not `session`) because `session` maintains cumulative tokens across the entire session lifetime, which would incorrectly attribute past tokens to today's date.
-- Each assistant message has a `data` JSON column containing `$.time.completed` (Unix ms timestamp), `$.cost`, `$.providerID`, and `$.modelID`.
-- The widget filters messages by `$.time.completed` to only count today's calls.
+## Build And Test
 
-## Architecture
-
-### Data Layer (`Data/`)
-
-- **DbLocator** - Resolves the database path (default or from the `--db-path` command-line argument)
-- **DayKey** - Static helper in `DbLocator.cs`; converts a Unix-ms timestamp to a `yyyy-MM-dd` string
-- **MessageTableRepository** - Primary repo that queries the `message` table for today's per-model cost breakdowns. Single SQL query with inner `GROUP BY (time.created, time.completed)` to deduplicate forked messages before aggregating per provider/model. Selects only `providerID`, `modelID`, and `cost`.
-- **IUsageRepository** - Interface for repositories
-
-### Services (`Services/`)
-
-- **UsagePoller** - DispatcherTimer-based poller that calls the repo and fires Updated/Error events. Implements `IDisposable`. Has an `_inFlight` guard to prevent overlapping queries if a poll takes longer than the interval.
-- **SettingsStore** - Persists/loads WidgetSettings to JSON file next to the exe
-- **ModelDisplayNameRules** - Formats raw model IDs (e.g. `claude-sonnet-4-20250514`) into human-readable display names. Applies title-case by default, then runs prefix-based replacement rules loaded from `model-display-names.txt` (next to the exe). Results are cached in a `ConcurrentDictionary`.
-- **TrayIconService** - Wraps a Windows Forms `NotifyIcon`. Double-clicking the tray icon toggles widget visibility; the context menu has **Exit**. Loads the embedded `Assets/icon.ico`. Closing the widget window hides it to the tray; only **Exit** terminates the application.
-
-### ViewModels (`ViewModels/`)
-
-- **WidgetViewModel** - Main VM; binds to the UI, tracks cost deltas for highlighting, manages ModelRows collection, exposes `IsExpanded` for breakdown visibility
-- **ModelRowViewModel** - One per breakdown row in the details section
-
-### Models (`Models/`)
-
-- **DayUsageSnapshot** - Today's aggregated data (`DayKey`, cost, per-model breakdown, taken-at timestamp)
-- **ModelBreakdown** - Per-model cost
-- **WidgetSettings** - Persisted JSON settings (window position, opacity, poll interval, always-on-top, is-expanded)
-
-## Key Design Decisions
-
-1. **Read-only SQLite** - Connection uses `SqliteOpenMode.ReadOnly` and `DefaultTimeout = 2` to survive database locks
-2. **Today only** - Tokens are attributed to the day the message _completed_, not when the session started
-3. **Non-blocking UI** - Slow queries don't freeze the UI; last known values stay on screen during refresh
-4. **Cost delta highlighting** - New spend since last poll is highlighted briefly
-5. **System tray** - The widget lives in the system tray; closing the widget hides it to the tray. **Hide** and **Exit** are available in the widget's context menu; the tray menu has **Exit**.
-6. **Settings debounce** - Slider drags (poll interval, opacity) update visuals immediately but debounce the disk write by 500ms via a `DispatcherTimer` in `MainWindow`, so `SettingsStore.Save()` fires once after the user stops dragging.
-7. **Delayed window show** - The window stays hidden until the first poll result arrives, avoiding a flash of "$0.00".
-8. **Quadrant-based resize anchoring** - When the widget resizes (e.g. expanding the breakdown list), the window anchors from the corner closest to the screen center so it expands "inward" rather than flying off-screen. The computed quadrant/span flags are cached and reused for exactly one subsequent resize, so expanding then collapsing returns the widget to its original (X,Y) even when the expanded size crosses a screen axis. The cached anchor is cleared when the window is dragged or centered. `SnapToEdgeIfOutOfBounds()` uses `WorkingArea` (excludes taskbar) rather than `Bounds`.
-9. **In-place ModelRows diff** - `WidgetViewModel` performs a minimal Move/Insert diff on the `ObservableCollection<ModelRowViewModel>` so WPF's `ItemContainerGenerator` can reuse containers instead of rebuilding the entire list each poll.
-10. **Context menu** - Right-clicking the widget shows: Always on top, Poll interval slider, Opacity slider, Center horizontally, Center vertically, Hide, Exit.
-
-## Building
+From a Visual Studio Developer PowerShell on Windows:
 
 ```powershell
-dotnet build src\OpenCodeCostMeter.csproj
+cmake -S qt -B build/qt -DCMAKE_PREFIX_PATH="C:\Qt\6.11.1\msvc2022_64"
+cmake --build build/qt
+ctest --test-dir build/qt --output-on-failure
 ```
 
-Output: `src\bin\Debug\net10.0-windows\OpenCodeCostMeter.exe`
+The `build/` directory is ignored by Git. On other platforms, use the installed Qt kit in `CMAKE_PREFIX_PATH`.
 
-## Icon
+## Behavior To Preserve
 
-The application and tray icon are generated from `src/Assets/icon.svg`. To regenerate `src/Assets/icon.ico` after editing the SVG:
+- Initial immediate poll, configurable polling interval, and no overlapping database queries.
+- Two-second spend highlighting and last-known values during refreshes/errors.
+- Frameless always-on-top widget, drag-to-move, hide-on-close, tray restore, and explicit Exit.
+- Context menu controls for topmost, polling interval, opacity, centering, hide, and exit.
+- Settings debounce and persisted position/opacity/interval/expanded state.
+- Working-area clamping and quadrant-based resize anchoring where the platform permits programmatic positioning.
+- Cascadia Mono for numeric/model text and Inter for UI text. Do not bundle Segoe UI.
 
-```powershell
-uv run --python 3.12 src/Assets/generate-icon.py
-```
+## Platform Notes
 
-## Command-line options
+Windows, macOS, and Linux X11 are supported targets. Wayland compositors may restrict absolute positioning, translucency, always-on-top, or tray behavior; do not claim stronger guarantees than the compositor provides.
 
-- `--db-path <path>` - Use an alternative `opencode.db` location instead of the default `%USERPROFILE%\.local\share\opencode\opencode.db`.
-- `--help` - Show help text and exit.
+## Command-Line Options
 
-## Settings
-
-Settings file: `OpenCodeCostMeter.settings.json` next to the exe. Delete to reset defaults. Includes window position, opacity, poll interval, always-on-top, and whether the model breakdown list is expanded.
-
-## Model Display Names
-
-Rules file: `model-display-names.txt` next to the exe. Each line is `prefix|find1=replace1;find2=replace2`. Prefix `*` matches all models. Lines starting with `#` are comments.
-
-## Project Structure
-
-```
-src/
-├─ Assets/                        # Application icon source (SVG), ICO, and generation script
-├─ Data/                          # Database access
-├─ Models/                        # Data models
-├─ Services/                      # Polling, settings persistence, and tray icon
-├─ ViewModels/                    # UI binding logic
-├─ Converters/                    # WPF value converters (BoolToVisibility, BoolToBrush)
-├─ MainWindow.xaml/.cs            # Borderless topmost widget window
-├─ App.xaml/.cs                   # Application bootstrap
-├─ model-display-names.txt        # Display name formatting rules (copied to output)
-└─ OpenCodeCostMeter.csproj       # Project file
-```
+- `--db-path <path>` uses an alternative OpenCode database.
+- `--help` prints usage and exits.

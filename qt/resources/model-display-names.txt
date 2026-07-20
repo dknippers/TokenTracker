@@ -9,8 +9,6 @@
 # additional find/replace operations are applied on the already-defaulted string.
 #
 # Use "*" as a prefix to apply replacements to ALL models (applied after prefix rules).
-# Example: *|V=v would lowercase every standalone "V" in any model name.
-#
 # Lines starting with # are comments. Blank lines are ignored.
 
 # General rules for all models

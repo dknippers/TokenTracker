@@ -57,12 +57,12 @@ else()
     target_compile_options(OpenCodeCostMeter PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../src/model-display-names.txt
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/resources/model-display-names.txt
     ${CMAKE_CURRENT_BINARY_DIR}/model-display-names.txt COPYONLY)
 
 include(GNUInstallDirs)
 install(TARGETS OpenCodeCostMeter BUNDLE DESTINATION . RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../src/model-display-names.txt DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/resources/model-display-names.txt DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 enable_testing()
 qt_add_executable(OpenCodeCostMeterTests tests/repository_tests.cpp src/models.h src/services.h src/services.cpp)
