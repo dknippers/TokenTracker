@@ -34,54 +34,34 @@ The application embeds Cascadia Mono (SIL OFL 1.1) and Inter (SIL OFL 1.1). Sego
 
 The active implementation is the Qt application under `qt/`. The former Windows-only WPF/.NET implementation has been removed.
 
-## Publish For Windows
+The recommended Windows distribution is a self-contained portable ZIP archive. Qt is dynamically linked, so a true single-file `.exe` is not produced by the normal build. The application does not require an installer, registry entries, or a separate font installation.
 
-The recommended Windows distribution is a self-contained portable folder or ZIP archive. Qt is dynamically linked, so a true single-file `.exe` is not produced by the normal build. The application does not require an installer, registry entries, or a separate font installation.
-
-Build the release executable from a **Visual Studio Developer PowerShell**:
+From any PowerShell at the repository root, run:
 
 ```powershell
-cmake -S qt -B build/qt -DCMAKE_PREFIX_PATH="C:\Qt\6.11.1\msvc2022_64" -DCMAKE_BUILD_TYPE=Release
-cmake --build build/qt --config Release
+.\publish-windows.ps1
 ```
 
-Deploy Qt and the MSVC runtime into a distribution directory. Adjust `$qtBin` if Qt is installed elsewhere:
+The script configures a Release build, compiles and tests it, runs `windeployqt`, bundles the Qt platform and SQLite plugins plus the MSVC runtime, and creates `OpenCodeCostMeter.zip` in the repository root. It also includes `model-display-names.txt`, `LICENSE`, and `THIRD-PARTY-NOTICES.md`.
+
+The script automatically locates Visual Studio and imports the MSVC build environment. No separate Developer PowerShell setup is required.
+
+If Qt is installed somewhere else, pass its `bin` directory:
 
 ```powershell
-$qtBin = "C:\Qt\6.11.1\msvc2022_64\bin"
-$dist = Join-Path $PWD "dist\OpenCodeCostMeter"
-
-Remove-Item $dist -Recurse -Force -ErrorAction SilentlyContinue
-New-Item $dist -ItemType Directory | Out-Null
-
-& (Join-Path $qtBin "windeployqt.exe") `
-    --release `
-    --compiler-runtime `
-    --no-translations `
-    --dir $dist `
-    (Join-Path $PWD "build\qt\OpenCodeCostMeter.exe")
-
-Copy-Item "build\qt\model-display-names.txt" $dist
-Copy-Item "LICENSE", "THIRD-PARTY-NOTICES.md" $dist
+.\publish-windows.ps1 -QtBin "D:\Qt\6.11.1\msvc2022_64\bin"
 ```
 
-Test the published copy before sharing it:
+Test the published copy by extracting the ZIP and running:
 
 ```powershell
-& .\dist\OpenCodeCostMeter\OpenCodeCostMeter.exe --help
-& .\dist\OpenCodeCostMeter\OpenCodeCostMeter.exe --db-path "C:\path\to\opencode.db"
+& .\OpenCodeCostMeter\OpenCodeCostMeter.exe --help
+& .\OpenCodeCostMeter\OpenCodeCostMeter.exe --db-path "C:\path\to\opencode.db"
 ```
 
-The resulting directory contains the application executable, Qt DLLs, the `platforms\qwindows.dll` platform plugin, the `sqldrivers\qsqlite.dll` SQLite plugin, and the MSVC runtime DLLs. Cascadia Mono and Inter are embedded in the executable resources, so their font files do not need to be distributed separately. Keep `model-display-names.txt` beside the executable because it is intentionally user-editable.
+Cascadia Mono and Inter are embedded in the executable resources, so their font files do not need to be distributed separately. Keep `model-display-names.txt` beside the executable because it is intentionally user-editable.
 
-Create a ZIP archive for distribution:
-
-```powershell
-Compress-Archive `
-    -Path ".\dist\OpenCodeCostMeter\*" `
-    -DestinationPath ".\dist\OpenCodeCostMeter-win-x64.zip" `
-    -Force
-```
+The script stages intermediate files under `build\windows-publish`. The resulting ZIP contains the application executable, Qt DLLs, the `platforms\qwindows.dll` platform plugin, the `sqldrivers\qsqlite.dll` SQLite plugin, and the MSVC runtime DLLs.
 
 Users can extract the ZIP and launch `OpenCodeCostMeter.exe`. Windows Defender SmartScreen may show a warning for unsigned binaries. Code-signing the executable and archive with a trusted certificate is recommended for public distribution.
 
